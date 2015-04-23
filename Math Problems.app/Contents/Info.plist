@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>Math Problems</string>
 	<key>CFBundleExecutable</key>
-        <string>math_problems /Applications/Math\ Problems.app/Contents/Resources/jokes.txt</string>
+        <string>math_problems</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.home.MathProblems</string>
 	<key>CFBundleInfoDictionaryVersion</key>
