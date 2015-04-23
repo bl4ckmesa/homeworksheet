@@ -15,12 +15,15 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>1.0</string>
 	<key>CFBundleName</key>
-	<string>Flux</string>
+	<string>MathProblems</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>1.0</string>
+	<key>CFBundleIconFile</key>
+	<string>math_problems.icns</string>
+
 </dict>
 </plist>
