@@ -14,7 +14,7 @@ import subprocess
 import time as monthdayyear
 
 # GLOBALS
-num_problems = 30        # How many problems? Currently multiples of num_per_line
+num_problems = 20        # How many problems? Currently multiples of num_per_line
 num_per_line = 5         # How many problems per line?
 high_number = 30         # Highest random number to use in problems
 low_number = 0           # Lowest random number to use
@@ -22,11 +22,11 @@ problem_width = 15       # Width in chars of each problem
 num_conversions = 2      # Number of conversion questions
 num_codes = 1            # Number of coded messages to decode
 atypes = ["+", "-", "x"] # Full set is ["+", "-", "x", "÷"]
-max_word_length = 20     # Vocab word max length
+max_word_length = 30     # Vocab word max length
 vocab_words = [
                 ('hello', 'common american greeting'),
                 ('shillelagh', 'father could whip a dozen men'),
-                ('locomotive', 'longish word for train')
+                ('locomo', 'longish word for train')
               ]
 
 # Derived globals
@@ -46,7 +46,7 @@ def get_sign():
     return choice(atypes)
 
 def gen_word_list(words,difficulty = "Monday"):
-    new_word_list = [""]
+    new_word_list = []
     perc = { "Monday"     : 0.40,
              "Tuesday"    : 0.55,
              "Wednesday"  : 0.70,
@@ -58,8 +58,9 @@ def gen_word_list(words,difficulty = "Monday"):
         num_chars = int(len(lword) * perc[difficulty])
         for index in sample(range(len(lword)), num_chars):
             lword[index] = "_ "
-        new_word = " ".join(lword) + (" " * (max_word_length - len(lword)))
-        new_word_list.append("%s%s" % (new_word, word_tuple[1]))
+        blank_word = " ".join(lword)
+        new_word = blank_word + (" " * (max_word_length - len(blank_word)))
+        new_word_list.append("%s%s\n" % (new_word, word_tuple[1]))
 
     if difficulty != "Monday":
         shuffle(new_word_list)
@@ -194,6 +195,7 @@ def coded_joke(sentence = "",all_lines = []):
         else:
             coded_sentence += old_letter
     all_lines.append(coded_sentence)
+    all_lines.append(["",""])
     return all_lines
 
 
@@ -221,7 +223,7 @@ def main():
             print l
             f.write(l + "\n")
     f.close()
-    subprocess.call(["open", "-a", "/Applications/OpenOffice.app", math_file])
+    #subprocess.call(["open", "-a", "/Applications/OpenOffice.app", math_file])
 
 if __name__ == "__main__":
     main()
