@@ -223,7 +223,7 @@ def main():
             print l
             f.write(l + "\n")
     f.close()
-    #subprocess.call(["open", "-a", "/Applications/OpenOffice.app", math_file])
+    subprocess.call(["open", "-a", "/Applications/OpenOffice.app", math_file])
 
 if __name__ == "__main__":
     main()
