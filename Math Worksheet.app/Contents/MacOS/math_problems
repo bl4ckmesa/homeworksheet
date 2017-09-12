@@ -6,6 +6,7 @@ from random import randint
 from random import choice
 from random import sample
 from random import shuffle
+from random import uniform
 from textwrap import wrap
 from datetime import date
 import calendar
@@ -14,19 +15,32 @@ import subprocess
 import time as monthdayyear
 
 # GLOBALS
-num_problems = 20        # How many problems? Currently multiples of num_per_line
-num_per_line = 5         # How many problems per line?
-high_number = 30         # Highest random number to use in problems
-low_number = 0           # Lowest random number to use
-problem_width = 15       # Width in chars of each problem
-num_conversions = 2      # Number of conversion questions
-num_codes = 1            # Number of coded messages to decode
-atypes = ["+", "-", "x"] # Full set is ["+", "-", "x", "÷"]
-max_word_length = 30     # Vocab word max length
+num_problems = 12             # How many problems? Currently multiples of num_per_line
+num_per_line = 4              # How many problems per line?
+high_number = 30              # Highest random number to use in problems
+low_number = 1                # Lowest random number to use
+problem_width = 19            # Width in chars of each problem
+num_conversions = 2           # Number of conversion questions
+num_codes = 1                 # Number of coded messages to decode
+atypes = ["+", "-", "x", "/"] # Full set is ["+", "-", "x", "÷"]
+max_word_length = 30          # Vocab word max length
+decimals = True               # Should we include decimal numbers in our math
+decimal_perc = 10             # How often should a question have a decimal?
+decimal_places = 1            # How many decimal places?
+decimal_exemptions = ["/"]    # List of operations to ignore decimals
+num_x_equations = 3           # Number of "Solve for X" equations
+
 vocab_words = [
-                ('hello', 'common american greeting'),
-                ('shillelagh', 'father could whip a dozen men'),
-                ('locomo', 'longish word for train')
+                ('graffiti', 'Don\'t spray this on the wall.'),
+                ('graphite', "It\'s inside your pencil."),
+                ('engineer', 'Drivers of trains'),
+                ('karate', 'An awesome type of fighting.'),
+                ('substitute', 'Filling in for someone else'),
+                ('enormous', 'Best friends with "gigantic".'),
+                ('weigh', 'the purpose of a scale'),
+                ('bullet', 'You dodged a _____'),
+                ('summarize', 'to make a long story become short'),
+                ('creation', 'it took the Lord six days')
               ]
 
 # Derived globals
@@ -35,11 +49,11 @@ page_width = problem_width * num_per_line
 num_rows = int(math.ceil((num_problems/num_per_line)))
 math_file = "/tmp/math_file.txt"
 
-def get_n1(low,high):
-    return str(randint(low,high))
-
-def get_n2(low,high):
-    return str(randint(low,high))
+def get_n(low,high):
+    if decimals is True and randint(0, 100) < decimal_perc:
+        return str(round(uniform(low,high),decimal_places))
+    else:
+        return str(randint(low,high))
 
 def get_sign():
     #return choice(["+", "-", "x", "÷"])
@@ -47,6 +61,7 @@ def get_sign():
 
 def gen_word_list(words,difficulty = "Monday"):
     new_word_list = []
+
     perc = { "Monday"     : 0.40,
              "Tuesday"    : 0.55,
              "Wednesday"  : 0.70,
@@ -65,19 +80,20 @@ def gen_word_list(words,difficulty = "Monday"):
     if difficulty != "Monday":
         shuffle(new_word_list)
 
+    new_word_list.insert(0,"Vocabulary:\n")
     return new_word_list
         
 
 
 def do_math(n1,n2,sign):
     if sign == "+":
-        return n1 + n2
+        return round(n1 + n2, 2)
     elif sign == "-":
-        return n1 - n2
+        return round(n1 - n2, 2)
     elif sign == "x":
-        return n1 * n2
-    elif sign == "÷":
-        return n1 / n2
+        return round(n1 * n2, 2)
+    elif sign == "÷" or sign == "/":
+        return round(n1 / n2, 2)
     else:
         return "NaN"
 
@@ -87,13 +103,16 @@ def arithmetic(all_lines = []):
     # Generate problem list
     problems = [ {} ]
     for p in range(num_problems):
-        n1 = get_n1(low_number,high_number)
-        n2 = get_n2(low_number,high_number)
-        if int(n2) > int(n1):
+        n1 = get_n(low_number,high_number)
+        n2 = get_n(low_number,high_number)
+        if float(n2) > float(n1):
             n1,n2 = n2,n1
         sign = get_sign()
+        if sign in (decimal_exemptions):
+            n1 = str(int(float(n1)))
+            n2 = str(int(float(n2)))
         # Solve the problem so we can make an answer key at the bottom.
-        answer = str(do_math(int(n1),int(n2),sign))
+        answer = str(do_math(float(n1),float(n2),sign))
         problems.append({ "number": str(p + 1), "n1": n1, "n2": n2, "sign": sign, "answer": answer })
 
     # Print problems out to screen
@@ -118,14 +137,15 @@ def arithmetic(all_lines = []):
         all_lines.append(lineanswer)
         all_lines.append("")
 
-    # Generate answer key
-    answerkey = "Answer Key: "
-    for problem in problems:
-        if problem:
-            answerkey += "(" + problem["number"] + ", " + problem["answer"] + ") "
-    all_lines.append('_' * page_width)
-    all_lines.append(wrap(answerkey,page_width))
-    all_lines.append("")
+    # # Generate answer key
+    # answerkey = "Answer Key: "
+    # for problem in problems:
+    #     if problem:
+    #         answerkey += "(" + problem["number"] + ", " + problem["answer"] + ") "
+    # all_lines.append('_' * page_width)
+    # all_lines.append(wrap(answerkey,page_width))
+    # all_lines.append("")
+    
     return all_lines
 
 # Generates a one-liner conversion.  Takes (units|time) and a grade level for args
@@ -198,19 +218,58 @@ def coded_joke(sentence = "",all_lines = []):
     all_lines.append(["",""])
     return all_lines
 
+def solve_for_x():
+    equations = []
+    equations.append('Solve for X:\n')
+    n = 0
+    while n < num_x_equations:
+        n1 = get_n(low_number,high_number)
+        n2 = get_n(low_number,high_number)
+        numbers = [str(n1), str(n2), "X"]
+        shuffle(numbers)
+        equations.append("    "+(" " * (3 - len(numbers[0])))+numbers[0]+"  "+choice(atypes)+" "+numbers[1]+(" " * (3 - len(numbers[1])))+"  =  "+numbers[2]+"\n\n\n")
+        n += 1    
+    return equations
+
+def find_median():
+    median = []
+    median.append('Find the median and the average of the following list of numbers:\n    ')
+    num_list = sample(range(1,100), 10)
+    median.append("     " + ' '.join(map(str,num_list)))
+    median.append("\n\n\n\nMedian:          Average:            \n")
+    return median
+
+def multiples():
+    multiples = []
+    multiples.append("List the multiples of the following numbers:\n")
+    m1 = 1
+    for x in range(randint(2,5)):
+        m1 *= randint(2,5)
+    m2 = 1
+    for x in range(randint(2,5)):
+        m2 *= randint(2,5)
+    multiples.append("      " + str(m1) + "           " + str(m2))
+    multiples.append("\n\n\n\n")
+    multiples.append("________________________________________________________\n")
+    return multiples
 
 def main():
     all_lines = []
     name = "Name:" + "_" * 15
     date = str(monthdayyear.strftime("%m/%d/%Y"))
-    justname = date + (" " * (page_width - len(name) - len(date))) + name + "\n"
+    week_prepend = "Week of: "
+    justname = week_prepend + date + (" " * (page_width - len(name) - len(date) - len(week_prepend))) + name + "\n"
     all_lines.append(justname)
 
     all_lines += arithmetic()
     all_lines.append("-" * page_width + "\n")
     all_lines += conversion(num_conversions)
-    all_lines += coded_joke()
+    all_lines += solve_for_x()
+    all_lines += find_median()
+    all_lines += multiples()
+    #all_lines += coded_joke()
     all_lines += gen_word_list(vocab_words, difficulty = day_of_week)
+
 
     # Print out lines
     f = open(math_file, 'w')
